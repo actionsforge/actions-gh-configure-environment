@@ -1,0 +1,103 @@
+name: Test Environment Configuration Action
+
+on:
+  workflow_dispatch:
+    inputs:
+      config-path:
+        description: 'Path to environments configuration file'
+        required: true
+        default: '.github/environments.yaml'
+      dry-run:
+        description: 'Run in dry-run mode (no changes made)'
+        required: false
+        type: boolean
+        default: true
+      debug:
+        description: 'Enable debug mode'
+        required: false
+        type: boolean
+        default: true
+      test-mode:
+        description: 'Test mode (basic|full)'
+        required: false
+        default: 'basic'
+        type: choice
+        options:
+          - basic
+          - full
+
+jobs:
+  test-action:
+    name: Test Environment Configuration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create basic test configuration
+        if: inputs.test-mode == 'basic'
+        run: |
+          cat > .github/environments.yaml <<EOL
+          environments:
+            test-env:
+              wait_timer: 30
+              reviewers:
+                - type: User
+                  login: test-user
+              prevent_self_review: true
+              deployment_branch_policy:
+                protected_branches: true
+                custom_branch_policies: false
+          EOL
+
+      - name: Create full test configuration
+        if: inputs.test-mode == 'full'
+        run: |
+          cat > .github/environments.yaml <<EOL
+          environments:
+            production:
+              wait_timer: 60
+              reviewers:
+                - type: User
+                  login: test-admin
+                - type: Team
+                  slug: security-team
+              prevent_self_review: true
+              deployment_branch_policy:
+                protected_branches: true
+                custom_branch_policies: false
+            staging:
+              wait_timer: 30
+              reviewers:
+                - type: User
+                  login: test-dev
+                - type: Team
+                  slug: dev-team
+              prevent_self_review: true
+              deployment_branch_policy:
+                protected_branches: true
+                custom_branch_policies: false
+            development:
+              wait_timer: 0
+              reviewers: []
+              prevent_self_review: false
+              deployment_branch_policy:
+                protected_branches: false
+                custom_branch_policies: false
+          EOL
+
+      - name: Test action
+        uses: ./
+        with:
+          token: ${{ secrets.GH_ENV_CONFIG_TOKEN }}
+          config-path: ${{ inputs.config-path }}
+          dry-run: ${{ inputs.dry-run }}
+          debug: ${{ inputs.debug }}
+
+      - name: Verify test results
+        run: |
+          echo "✅ Action test completed"
+          echo "Config path: ${{ inputs.config-path }}"
+          echo "Dry run: ${{ inputs.dry-run }}"
+          echo "Debug mode: ${{ inputs.debug }}"
+          echo "Test mode: ${{ inputs.test-mode }}"
