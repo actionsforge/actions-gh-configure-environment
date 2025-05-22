@@ -1,0 +1,33 @@
+name: "GitHub Environment Configuration"
+description: "Configure GitHub environment settings via the GitHub API using a declarative YAML file. Fully managed - environments not in the config will be removed."
+author: "ActionsForge"
+
+inputs:
+  config-path:
+    description: "Path to the YAML configuration file containing environment settings"
+    required: false
+    default: ".github/environments.yaml"
+  dry-run:
+    description: "Run in dry-run mode (no changes will be made)"
+    required: false
+    default: "false"
+  token:
+    description: "GitHub token with required permissions (repo scope for repository environments, admin:org scope for organization environments)"
+    required: true
+  debug:
+    description: "Enable debug mode for detailed logging"
+    required: false
+    default: "false"
+
+outputs:
+  status:
+    description: "Operation status (success/failure)"
+  message:
+    description: "Operation result message"
+
+runs:
+  using: "node20"
+  main: "dist/index.js"
+branding:
+  icon: "settings"
+  color: "blue"
