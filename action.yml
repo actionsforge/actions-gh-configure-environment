@@ -1,5 +1,5 @@
 name: "GitHub Environment Configuration"
-description: "Configure GitHub environment settings via the GitHub API using a declarative YAML file. Fully managed - environments not in the config will be removed."
+description: "Configure your GitHub environments from a declarative YAML configuration using the GitHub API"
 author: "ActionsForge"
 
 inputs:
