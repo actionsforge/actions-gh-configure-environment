@@ -1,30 +1,39 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as core from '@actions/core';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
 import { GitHubService } from '../github';
 import { run, getInputs, loadConfig } from '../index';
 
-jest.mock('@actions/core');
-jest.mock('../github');
-jest.mock('fs', () => ({
-  ...jest.requireActual('fs'),
+vi.mock('@actions/core');
+vi.mock('../github');
+vi.mock('fs', () => ({
   promises: {
-    access: jest.fn(),
-    readFile: jest.fn()
+    access: vi.fn(),
+    readFile: vi.fn()
   },
-  readFileSync: jest.fn()
+  readFileSync: vi.fn(),
+  existsSync: vi.fn()
 }));
-jest.mock('js-yaml');
+vi.mock('js-yaml');
 
 describe('Action', () => {
-  let mockGitHubService: jest.Mocked<GitHubService>;
+  let mockGitHubService: {
+    getAllEnvironments: ReturnType<typeof vi.fn>;
+    getEnvironmentConfig: ReturnType<typeof vi.fn>;
+    updateEnvironment: ReturnType<typeof vi.fn>;
+    deleteAnEnvironment: ReturnType<typeof vi.fn>;
+    getUser: ReturnType<typeof vi.fn>;
+    getTeam: ReturnType<typeof vi.fn>;
+    resolveReviewers: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     process.env.GITHUB_REPOSITORY = 'owner/repo';
     process.env.GITHUB_TOKEN = 'test-token';
 
-    (core.getInput as jest.Mock).mockImplementation((name: string) => {
+    (core.getInput as ReturnType<typeof vi.fn>).mockImplementation((name: string) => {
       switch (name) {
         case 'token':
           return 'test-token';
@@ -40,18 +49,18 @@ describe('Action', () => {
     });
 
     mockGitHubService = {
-      getAllEnvironments: jest.fn().mockResolvedValue(['test-env']),
-      getEnvironmentConfig: jest.fn().mockResolvedValue({
+      getAllEnvironments: vi.fn().mockResolvedValue(['test-env']),
+      getEnvironmentConfig: vi.fn().mockResolvedValue({
         protection_rules: [],
         reviewers: [],
         prevent_self_review: false,
         deployment_branch_policy: { protected_branches: true, custom_branch_policies: false }
       }),
-      updateEnvironment: jest.fn().mockResolvedValue({ status: 'success', message: 'Updated' }),
-      deleteAnEnvironment: jest.fn().mockResolvedValue({ status: 'success', message: 'Deleted' }),
-      getUser: jest.fn().mockResolvedValue({ type: 'User', id: 123, login: 'testuser' }),
-      getTeam: jest.fn().mockResolvedValue({ type: 'Team', id: 456, slug: 'testteam' }),
-      resolveReviewers: jest.fn().mockImplementation(async (envName: string, reviewers: Array<{ type: 'User' | 'Team'; login?: string; slug?: string }>) => {
+      updateEnvironment: vi.fn().mockResolvedValue({ status: 'success', message: 'Updated' }),
+      deleteAnEnvironment: vi.fn().mockResolvedValue({ status: 'success', message: 'Deleted' }),
+      getUser: vi.fn().mockResolvedValue({ type: 'User', id: 123, login: 'testuser' }),
+      getTeam: vi.fn().mockResolvedValue({ type: 'Team', id: 456, slug: 'testteam' }),
+      resolveReviewers: vi.fn().mockImplementation(async (envName: string, reviewers: Array<{ type: 'User' | 'Team'; login?: string; slug?: string }>) => {
         const resolvedReviewers: Array<{ type: 'User' | 'Team'; id?: number; login?: string; slug?: string }> = [];
         for (const reviewer of reviewers) {
           if (reviewer.type === 'User') {
@@ -64,8 +73,8 @@ describe('Action', () => {
         }
         return resolvedReviewers;
       })
-    } as unknown as jest.Mocked<GitHubService>;
-    (GitHubService as jest.Mock).mockImplementation(() => mockGitHubService);
+    };
+    (GitHubService as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => mockGitHubService);
 
     const mockConfig = {
       environments: {
@@ -83,8 +92,8 @@ describe('Action', () => {
         }
       }
     };
-    (fs.readFileSync as jest.Mock).mockReturnValue('mock yaml content');
-    (yaml.load as jest.Mock).mockReturnValue(mockConfig);
+    (fs.readFileSync as ReturnType<typeof vi.fn>).mockReturnValue('mock yaml content');
+    (yaml.load as ReturnType<typeof vi.fn>).mockReturnValue(mockConfig);
   });
 
   afterEach(() => {
@@ -122,8 +131,8 @@ describe('Action', () => {
 
     it('should handle missing environments in config', async () => {
       const mockConfig = { environments: {} };
-      (fs.readFileSync as jest.Mock).mockReturnValue('environments: {}');
-      (yaml.load as jest.Mock).mockReturnValue(mockConfig);
+      (fs.readFileSync as ReturnType<typeof vi.fn>).mockReturnValue('environments: {}');
+      (yaml.load as ReturnType<typeof vi.fn>).mockReturnValue(mockConfig);
       mockGitHubService.getAllEnvironments.mockResolvedValue(['env1', 'env2']);
 
       await run();
@@ -134,7 +143,7 @@ describe('Action', () => {
     });
 
     it('should handle invalid YAML config', async () => {
-      (yaml.load as jest.Mock).mockImplementation(() => {
+      (yaml.load as ReturnType<typeof vi.fn>).mockImplementation(() => {
         throw new Error('Invalid YAML');
       });
       await run();
@@ -148,7 +157,7 @@ describe('Action', () => {
     });
 
     it('should skip environment update in dry-run mode', async () => {
-      (core.getInput as jest.Mock).mockImplementation((name: string) => {
+      (core.getInput as ReturnType<typeof vi.fn>).mockImplementation((name: string) => {
         if (name === 'dry-run') return 'true';
         if (name === 'token') return 'test-token';
         if (name === 'config-path') return '.github/environments.yaml';
@@ -173,7 +182,7 @@ describe('Action', () => {
     });
 
     it('should handle empty reviewers list', async () => {
-      (yaml.load as jest.Mock).mockReturnValue({
+      (yaml.load as ReturnType<typeof vi.fn>).mockReturnValue({
         environments: {
           'test-env': {
             wait_timer: 30,
@@ -192,7 +201,7 @@ describe('Action', () => {
     });
 
     it('should handle missing reviewers in config', async () => {
-      (yaml.load as jest.Mock).mockReturnValue({
+      (yaml.load as ReturnType<typeof vi.fn>).mockReturnValue({
         environments: {
           'test-env': {
             wait_timer: 30,
@@ -213,7 +222,7 @@ describe('Action', () => {
 
 describe('Input handling', () => {
   it('should throw error when no token is provided', async () => {
-    jest.spyOn(core, 'getInput').mockImplementation((name: string) => {
+    vi.spyOn(core, 'getInput').mockImplementation((name: string) => {
       if (name === 'token') return '';
       return '';
     });
@@ -222,7 +231,7 @@ describe('Input handling', () => {
   });
 
   it('should use environment variable token when input token is not provided', async () => {
-    jest.spyOn(core, 'getInput').mockImplementation((name: string) => {
+    vi.spyOn(core, 'getInput').mockImplementation((name: string) => {
       if (name === 'token') return '';
       return '';
     });
@@ -233,15 +242,15 @@ describe('Input handling', () => {
 
   it('should handle missing environments key in config', async () => {
     const mockConfig = {};
-    jest.spyOn(fs, 'readFileSync').mockReturnValue('{}');
-    jest.spyOn(yaml, 'load').mockReturnValue(mockConfig);
+    vi.spyOn(fs, 'readFileSync').mockReturnValue('{}');
+    vi.spyOn(yaml, 'load').mockReturnValue(mockConfig);
     await expect(loadConfig('test.yaml')).rejects.toThrow('Invalid configuration: missing "environments" key');
   });
 
   it('should handle empty environments array in config', async () => {
     const mockConfig = { environments: [] };
-    jest.spyOn(fs, 'readFileSync').mockReturnValue('environments: []');
-    jest.spyOn(yaml, 'load').mockReturnValue(mockConfig);
+    vi.spyOn(fs, 'readFileSync').mockReturnValue('environments: []');
+    vi.spyOn(yaml, 'load').mockReturnValue(mockConfig);
     const config = await loadConfig('test.yaml');
     expect(config.environments).toEqual({});
   });

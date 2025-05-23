@@ -14,11 +14,11 @@ npm run build
 
 # Test 1: Direct CLI test
 echo "🔍 Testing CLI interface..."
-node dist/index.cjs --help
+node dist/index.js --help
 
 # Test 2: Basic functionality test
 echo "🔍 Testing basic functionality..."
-node dist/index.cjs --token test-token --username test-user || {
+node dist/index.js --token test-token --config-path .github/environments.yaml --dry-run true || {
     echo "⚠️ Basic functionality test failed (expected with test token)"
 }
 
@@ -27,13 +27,12 @@ if command -v act &> /dev/null; then
     if docker info &> /dev/null; then
         echo "🔍 Testing with act (local testing only)..."
         # Use -n to skip image selection and -P to specify the image
-        # Pass inputs directly as command-line arguments
         act -n -W .github/workflows/test-action.yml workflow_dispatch \
             -P ubuntu-latest=nektos/act-environments-ubuntu:18.04 \
-            --input username=test-user \
             --input token=test-token \
-            --input limit=6 \
-            --input min-views=0 || {
+            --input config-path=.github/environments.yaml \
+            --input dry-run=true \
+            --input debug=true || {
             echo "⚠️ act test failed (expected with test token)"
         }
     else

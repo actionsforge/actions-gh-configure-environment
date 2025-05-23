@@ -63,7 +63,7 @@ export class GitHubService {
         org: this.owner,
         team_slug: teamSlug
       });
-      return repos.some(repo => repo.full_name === `${this.owner}/${this.repo}`);
+      return repos.some((repo: { full_name: string }) => repo.full_name === `${this.owner}/${this.repo}`);
     } catch {
       return false;
     }
@@ -211,9 +211,9 @@ export class GitHubService {
       });
 
       const currentRules = currentConfig.protection_rules || [];
-      const waitTimerRule = currentRules.find(r => r.type === 'wait_timer');
+      const waitTimerRule = currentRules.find((r: { id: number; node_id: string; type: string; wait_timer?: number }) => r.type === 'wait_timer');
       const currentWaitTimer = this.isWaitTimerRule(waitTimerRule) ? waitTimerRule.wait_timer : undefined;
-      const reviewersRule = currentRules.find(r => r.type === 'required_reviewers');
+      const reviewersRule = currentRules.find((r: { id: number; node_id: string; type: string; reviewers?: { type?: 'User' | 'Team'; reviewer?: { id: number; login?: string; slug?: string } }[] }) => r.type === 'required_reviewers');
       const currentReviewers = this.isReviewersRule(reviewersRule) ? reviewersRule.reviewers : undefined;
       const currentPreventSelfReview = this.isReviewersRule(reviewersRule) ? reviewersRule.prevent_self_review : undefined;
       const currentBranchPolicy = currentConfig.deployment_branch_policy;
@@ -362,7 +362,7 @@ export class GitHubService {
         owner: this.owner,
         repo: this.repo
       });
-      return (data.environments || []).map(env => env.name);
+      return (data.environments || []).map((env: { name: string }) => env.name);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       throw new Error(`Failed to get environments: ${errorMessage}`);

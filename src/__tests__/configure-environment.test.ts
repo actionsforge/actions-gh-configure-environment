@@ -1,32 +1,33 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as core from '@actions/core';
-import { GitHubService } from '../github';
+import * as github from '../github';
 import { run } from '../configure-environment';
 import { EnvironmentConfig } from '../types';
 import * as utils from '../utils';
 
-jest.mock('@actions/core');
-jest.mock('../github');
-jest.mock('../utils');
+vi.mock('@actions/core');
+vi.mock('../github');
+vi.mock('../utils');
 
 describe('configure-environment', () => {
   let mockOctokit: {
     repos: {
-      getEnvironment: jest.Mock;
-      deleteAnEnvironment: jest.Mock;
-      createOrUpdateEnvironment: jest.Mock;
+      getEnvironment: ReturnType<typeof vi.fn>;
+      deleteAnEnvironment: ReturnType<typeof vi.fn>;
+      createOrUpdateEnvironment: ReturnType<typeof vi.fn>;
     };
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockOctokit = {
       repos: {
-        getEnvironment: jest.fn(),
-        deleteAnEnvironment: jest.fn(),
-        createOrUpdateEnvironment: jest.fn()
+        getEnvironment: vi.fn(),
+        deleteAnEnvironment: vi.fn(),
+        createOrUpdateEnvironment: vi.fn()
       }
     };
-    (GitHubService as jest.Mock).mockImplementation(() => ({
+    (github.GitHubService as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => ({
       getEnvironmentConfig: (envName: string) => mockOctokit.repos.getEnvironment({
         owner: 'owner',
         repo: 'repo',
@@ -68,7 +69,7 @@ describe('configure-environment', () => {
         message: `Successfully created environment '${envName}'`
       }))
     }));
-    (utils.processReviewers as jest.Mock).mockResolvedValue([
+    (utils.processReviewers as unknown as ReturnType<typeof vi.fn>).mockResolvedValue([
       { type: 'User', id: 123, login: 'testuser' },
       { type: 'Team', id: 456, slug: 'testteam' }
     ]);
@@ -99,7 +100,7 @@ describe('configure-environment', () => {
       };
 
       mockOctokit.repos.getEnvironment.mockResolvedValue({ data: mockEnvData });
-      jest.spyOn(core, 'getInput')
+      vi.spyOn(core, 'getInput')
         .mockReturnValueOnce('get')  // action
         .mockReturnValueOnce('test-env'); // environment_name
 
@@ -117,7 +118,7 @@ describe('configure-environment', () => {
 
     it('should handle non-existent environment', async () => {
       mockOctokit.repos.getEnvironment.mockRejectedValue(new Error('Not Found'));
-      jest.spyOn(core, 'getInput')
+      vi.spyOn(core, 'getInput')
         .mockReturnValueOnce('get')  // action
         .mockReturnValueOnce('test-env'); // environment_name
 
@@ -130,7 +131,7 @@ describe('configure-environment', () => {
 
     it('should handle errors when getting environment', async () => {
       mockOctokit.repos.getEnvironment.mockRejectedValue(new Error('Get failed'));
-      jest.spyOn(core, 'getInput')
+      vi.spyOn(core, 'getInput')
         .mockReturnValueOnce('get')  // action
         .mockReturnValueOnce('test-env'); // environment_name
 
@@ -144,7 +145,7 @@ describe('configure-environment', () => {
     it('should delete an existing environment', async () => {
       mockOctokit.repos.getEnvironment.mockResolvedValue({ data: { name: 'test-env' } });
       mockOctokit.repos.deleteAnEnvironment.mockResolvedValue({ data: {} });
-      jest.spyOn(core, 'getInput')
+      vi.spyOn(core, 'getInput')
         .mockReturnValueOnce('delete')  // action
         .mockReturnValueOnce('test-env'); // environment_name
 
@@ -161,7 +162,7 @@ describe('configure-environment', () => {
 
     it('should handle non-existent environment gracefully', async () => {
       mockOctokit.repos.getEnvironment.mockRejectedValue(new Error('Not Found'));
-      jest.spyOn(core, 'getInput')
+      vi.spyOn(core, 'getInput')
         .mockReturnValueOnce('delete')  // action
         .mockReturnValueOnce('test-env'); // environment_name
 
@@ -175,7 +176,7 @@ describe('configure-environment', () => {
     it('should handle errors when deleting environment', async () => {
       mockOctokit.repos.getEnvironment.mockResolvedValue({ data: { name: 'test-env' } });
       mockOctokit.repos.deleteAnEnvironment.mockRejectedValue(new Error('Delete failed'));
-      jest.spyOn(core, 'getInput')
+      vi.spyOn(core, 'getInput')
         .mockReturnValueOnce('delete')  // action
         .mockReturnValueOnce('test-env'); // environment_name
 
@@ -187,7 +188,7 @@ describe('configure-environment', () => {
 
   describe('create/update action', () => {
     it('should create environment with all parameters', async () => {
-      jest.spyOn(core, 'getInput')
+      vi.spyOn(core, 'getInput')
         .mockReturnValueOnce('create')  // action
         .mockReturnValueOnce('test-env') // environment_name
         .mockReturnValueOnce('user:testuser,team:testteam') // reviewers
@@ -231,7 +232,7 @@ describe('configure-environment', () => {
     });
 
     it('should handle invalid JSON in deployment_branch_policy', async () => {
-      jest.spyOn(core, 'getInput')
+      vi.spyOn(core, 'getInput')
         .mockReturnValueOnce('create')  // action
         .mockReturnValueOnce('test-env') // environment_name
         .mockReturnValueOnce('') // reviewers
