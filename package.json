@@ -1,31 +1,51 @@
 {
   "name": "actions-gh-configure-environment",
   "version": "1.0.0",
-  "description": "GitHub Action to configure environment settings",
+  "description": "GitHub Action to configure environment settings from a declarative YAML configuration using the GitHub API",
   "main": "dist/index.js",
+  "type": "commonjs",
   "scripts": {
-    "build": "tsc && cp src/configure-environment.sh dist/",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "lint": "eslint src/**/*.ts",
-    "type-check": "tsc --noEmit",
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --ext .ts",
+    "format": "prettier --write \"**/*.{ts,json,md}\"",
+    "start": "node dist/index.js",
     "prepare": "npm run build"
   },
   "dependencies": {
     "@actions/core": "^1.11.1",
-    "@actions/github": "^6.0.0",
-    "@octokit/rest": "^20.1.2"
+    "@actions/github": "^6.0.1",
+    "@octokit/rest": "20.1.2",
+    "js-yaml": "^4.1.0"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.0",
+    "@types/istanbul-lib-coverage": "^2.0.6",
+    "@types/jest": "^29.5.14",
     "@types/js-yaml": "^4.0.9",
-    "@types/node": "^20.0.0",
+    "@types/node": "^22.14.1",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
-    "eslint": "^8.57.0",
-    "jest": "^29.5.0",
-    "ts-jest": "^29.1.0",
-    "typescript": "~5.3.3"
-  }
+    "@vitest/coverage-v8": "^3.1.2",
+    "eslint": "^8.57.1",
+    "ts-node": "^10.9.2",
+    "tsup": "^8.4.0",
+    "typescript": "^5.3.3",
+    "vitest": "^3.1.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": [
+    "github",
+    "environments",
+    "configuration",
+    "automation",
+    "actions"
+  ],
+  "author": "John Ajera",
+  "license": "MIT"
 }

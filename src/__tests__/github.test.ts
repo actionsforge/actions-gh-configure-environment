@@ -1,26 +1,30 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GitHubService } from '../github';
 import { Octokit } from '@octokit/rest';
 import { EnvironmentConfig, Reviewer } from '../types';
 import * as core from '@actions/core';
 
-jest.mock('@octokit/rest');
-jest.mock('@actions/core', () => ({
-  error: jest.fn(),
-  debug: jest.fn()
+vi.mock('@octokit/rest');
+vi.mock('@actions/core', () => ({
+  error: vi.fn(),
+  info: vi.fn(),
+  debug: vi.fn(),
+  getInput: vi.fn(),
+  setFailed: vi.fn()
 }));
 
 describe('GitHubService', () => {
   let mockOctokit: {
-    users: { getByUsername: jest.Mock };
+    users: { getByUsername: ReturnType<typeof vi.fn> };
     teams: {
-      getByName: jest.Mock;
-      listReposInOrg: jest.Mock;
+      getByName: ReturnType<typeof vi.fn>;
+      listReposInOrg: ReturnType<typeof vi.fn>;
     };
     repos: {
-      getEnvironment: jest.Mock;
-      deleteAnEnvironment: jest.Mock;
-      createOrUpdateEnvironment: jest.Mock;
-      getAllEnvironments: jest.Mock;
+      getEnvironment: ReturnType<typeof vi.fn>;
+      deleteAnEnvironment: ReturnType<typeof vi.fn>;
+      createOrUpdateEnvironment: ReturnType<typeof vi.fn>;
+      getAllEnvironments: ReturnType<typeof vi.fn>;
     };
   };
   let service: GitHubService;
@@ -28,23 +32,23 @@ describe('GitHubService', () => {
   const mockRepo = 'owner/repo';
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockOctokit = {
       users: {
-        getByUsername: jest.fn()
+        getByUsername: vi.fn()
       },
       teams: {
-        getByName: jest.fn(),
-        listReposInOrg: jest.fn()
+        getByName: vi.fn(),
+        listReposInOrg: vi.fn()
       },
       repos: {
-        getEnvironment: jest.fn(),
-        deleteAnEnvironment: jest.fn(),
-        createOrUpdateEnvironment: jest.fn(),
-        getAllEnvironments: jest.fn()
+        getEnvironment: vi.fn(),
+        deleteAnEnvironment: vi.fn(),
+        createOrUpdateEnvironment: vi.fn(),
+        getAllEnvironments: vi.fn()
       }
     };
-    (Octokit as unknown as jest.Mock).mockImplementation(() => mockOctokit);
+    (Octokit as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => mockOctokit);
     service = new GitHubService(mockToken, mockRepo);
     (service as unknown as { octokit: typeof mockOctokit }).octokit = mockOctokit;
   });
@@ -309,7 +313,7 @@ describe('GitHubService', () => {
     it('should extract existing reviewers from required_reviewers rule', async () => {
       const service = new GitHubService('fake-token', 'owner/repo');
 
-      jest.spyOn(service, 'getEnvironmentConfig').mockResolvedValue({
+      vi.spyOn(service, 'getEnvironmentConfig').mockResolvedValue({
         protection_rules: [
           {
             type: 'required_reviewers',
@@ -585,7 +589,7 @@ describe('GitHubService', () => {
   describe('getAllEnvironments', () => {
     it('should return list of environments', async () => {
       const mockEnvironments = [{ name: 'env1' }, { name: 'env2' }];
-      mockOctokit.repos.getAllEnvironments = jest.fn().mockResolvedValue({ data: { environments: mockEnvironments } });
+      mockOctokit.repos.getAllEnvironments = vi.fn().mockResolvedValue({ data: { environments: mockEnvironments } });
 
       const result = await service.getAllEnvironments();
       expect(result).toEqual(['env1', 'env2']);
@@ -596,14 +600,14 @@ describe('GitHubService', () => {
     });
 
     it('should handle empty environments list', async () => {
-      mockOctokit.repos.getAllEnvironments = jest.fn().mockResolvedValue({ data: { environments: [] } });
+      mockOctokit.repos.getAllEnvironments = vi.fn().mockResolvedValue({ data: { environments: [] } });
 
       const result = await service.getAllEnvironments();
       expect(result).toEqual([]);
     });
 
     it('should handle errors when getting environments', async () => {
-      mockOctokit.repos.getAllEnvironments = jest.fn().mockRejectedValue(new Error('Failed to get environments'));
+      mockOctokit.repos.getAllEnvironments = vi.fn().mockRejectedValue(new Error('Failed to get environments'));
 
       await expect(service.getAllEnvironments()).rejects.toThrow('Failed to get environments');
     });
@@ -618,7 +622,7 @@ describe('GitHubService', () => {
 
       mockOctokit.users.getByUsername.mockResolvedValue({ data: { id: 123, login: 'testuser' } });
       mockOctokit.teams.getByName.mockResolvedValue({ data: { id: 456, slug: 'testteam' } });
-      mockOctokit.teams.listReposInOrg = jest.fn().mockResolvedValue({ data: [{ full_name: 'owner/repo' }] });
+      mockOctokit.teams.listReposInOrg = vi.fn().mockResolvedValue({ data: [{ full_name: 'owner/repo' }] });
 
       const result = await service.resolveReviewers('test-env', reviewers);
 
@@ -639,7 +643,7 @@ describe('GitHubService', () => {
       ];
 
       mockOctokit.teams.getByName.mockResolvedValue({ data: { id: 456, slug: 'testteam' } });
-      mockOctokit.teams.listReposInOrg = jest.fn().mockResolvedValue({ data: [] });
+      mockOctokit.teams.listReposInOrg = vi.fn().mockResolvedValue({ data: [] });
 
       const result = await service.resolveReviewers('test-env', reviewers);
       expect(result).toEqual([]);
@@ -652,7 +656,7 @@ describe('GitHubService', () => {
       ];
 
       mockOctokit.users.getByUsername.mockRejectedValue(new Error('Not Found'));
-      mockOctokit.teams.listReposInOrg = jest.fn().mockResolvedValue({ data: [] });
+      mockOctokit.teams.listReposInOrg = vi.fn().mockResolvedValue({ data: [] });
 
       const result = await service.resolveReviewers('test-env', reviewers);
       expect(result).toEqual([]);
@@ -681,7 +685,7 @@ describe('GitHubService', () => {
 
       mockOctokit.users.getByUsername.mockResolvedValue({ data: { id: 123, login: 'testuser' } });
       mockOctokit.teams.getByName.mockResolvedValue({ data: { id: 456, slug: 'testteam' } });
-      mockOctokit.teams.listReposInOrg = jest.fn().mockResolvedValue({ data: [{ full_name: 'owner/repo' }] });
+      mockOctokit.teams.listReposInOrg = vi.fn().mockResolvedValue({ data: [{ full_name: 'owner/repo' }] });
 
       const result = await service.resolveReviewers('test-env', reviewers);
       expect(result).toEqual([
@@ -696,7 +700,7 @@ describe('GitHubService', () => {
       ];
 
       mockOctokit.teams.getByName.mockResolvedValue({ data: { id: 456, slug: 'testteam' } });
-      mockOctokit.teams.listReposInOrg = jest.fn().mockRejectedValue(new Error('API Error'));
+      mockOctokit.teams.listReposInOrg = vi.fn().mockRejectedValue(new Error('API Error'));
 
       const result = await service.resolveReviewers('test-env', reviewers);
 
@@ -711,7 +715,7 @@ describe('GitHubService', () => {
       ];
 
       mockOctokit.teams.getByName.mockResolvedValue({ data: { id: 456, slug: 'testteam' } });
-      mockOctokit.teams.listReposInOrg = jest.fn().mockRejectedValue(new Error('Unexpected Error'));
+      mockOctokit.teams.listReposInOrg = vi.fn().mockRejectedValue(new Error('Unexpected Error'));
 
       const result = await service.resolveReviewers('test-env', reviewers);
 
@@ -741,7 +745,7 @@ describe('GitHubService', () => {
         data: { id: 456, slug: 'testteam' }
       });
 
-      mockOctokit.teams.listReposInOrg = jest.fn().mockResolvedValue({ data: [] });
+      mockOctokit.teams.listReposInOrg = vi.fn().mockResolvedValue({ data: [] });
 
       const result = await service.resolveReviewers('test-env', reviewers);
 
@@ -981,7 +985,7 @@ describe('GitHubService', () => {
       });
 
       // Inject hasTeamAccess to throw exactly "API Error"
-      jest.spyOn(service, 'hasTeamAccess').mockImplementation(async () => {
+      vi.spyOn(service, 'hasTeamAccess').mockImplementation(async () => {
         throw new Error('API Error');
       });
 
