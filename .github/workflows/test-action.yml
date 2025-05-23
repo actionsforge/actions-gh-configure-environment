@@ -34,6 +34,37 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build action
+        run: |
+          npm run build
+          echo "Checking build output..."
+          ls -la dist/
+
+          # Check that all TypeScript files were compiled
+          for ts_file in src/*.ts; do
+            js_file="dist/$(basename "$ts_file" .ts).js"
+            if [ ! -f "$js_file" ]; then
+              echo "❌ Missing compiled file: $js_file"
+              exit 1
+            fi
+            echo "✅ Found compiled file: $js_file"
+          done
+
+          # Check for shell script
+          if [ ! -f "dist/configure-environment.sh" ]; then
+            echo "❌ Missing shell script: dist/configure-environment.sh"
+            exit 1
+          fi
+          echo "✅ Found shell script: dist/configure-environment.sh"
+
       - name: Create basic test configuration
         if: inputs.test-mode == 'basic'
         run: |
