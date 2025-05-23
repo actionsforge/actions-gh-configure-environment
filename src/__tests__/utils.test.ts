@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GitHubService } from '../github';
 import { processReviewers } from '../utils';
+import { Octokit } from '@octokit/rest';
 
 vi.mock('../github');
 
@@ -25,7 +26,7 @@ describe('Utils', () => {
         deleteAnEnvironment: vi.fn(),
         resolveReviewers: vi.fn(),
         hasTeamAccess: vi.fn(),
-        octokit: {} as any
+        octokit: {} as Octokit
       } as unknown as GitHubService;
     });
 
