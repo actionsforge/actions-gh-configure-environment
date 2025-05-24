@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "GitHub Action to configure environment settings from a declarative YAML configuration using the GitHub API",
   "main": "dist/index.js",
-  "type": "module",
+  "type": "commonjs",
   "scripts": {
     "build": "tsup && npm run clean-dist",
     "clean-dist": "find dist -type f ! -name 'index.js' ! -name 'index.d.ts' ! -name 'configure-environment.sh' -delete",
@@ -32,6 +32,7 @@
     "@typescript-eslint/parser": "^6.21.0",
     "@vitest/coverage-v8": "^3.1.2",
     "eslint": "^8.57.1",
+    "ts-node": "^10.9.2",
     "tsup": "^8.5.0",
     "typescript": "^5.3.3",
     "vitest": "^3.1.2"

@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 "use strict";
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -20054,8 +20053,8 @@ __export(index_exports, {
   run: () => run
 });
 module.exports = __toCommonJS(index_exports);
-var core4 = __toESM(require_core(), 1);
-var fs = __toESM(require("fs"), 1);
+var core4 = __toESM(require_core());
+var fs = __toESM(require("fs"));
 
 // node_modules/js-yaml/dist/js-yaml.mjs
 function isNothing(subject) {
@@ -25885,20 +25884,16 @@ var Octokit2 = Octokit.plugin(
 });
 
 // src/github.ts
-var core3 = __toESM(require_core(), 1);
+var core3 = __toESM(require_core());
 
 // src/utils.ts
-var core2 = __toESM(require_core(), 1);
+var core2 = __toESM(require_core());
 function logDebug(enabled, message) {
   if (enabled) core2.debug(message);
 }
 
 // src/github.ts
 var GitHubService = class {
-  octokit;
-  owner;
-  repo;
-  debug;
   constructor(token, repository, debug2 = false) {
     if (!token) {
       throw new Error("Token is required");
