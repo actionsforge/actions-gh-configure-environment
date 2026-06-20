@@ -92,7 +92,7 @@ export class GitHubService {
         ...(er.reviewer.login ? { login: er.reviewer.login } : {}),
         ...(er.reviewer.slug ? { slug: er.reviewer.slug } : {})
       }));
-    } catch (error) {
+    } catch {
       logDebug(this.debug, `Environment ${environmentName} does not exist yet, skipping existing reviewer check`);
     }
 

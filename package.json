@@ -15,30 +15,35 @@
     "lint": "eslint . --ext .ts",
     "format": "prettier --write \"**/*.{ts,json,md}\"",
     "start": "node dist/index.js",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "lockfile:sync": "npx -y npm@10.9.2 install --package-lock-only"
   },
   "dependencies": {
-    "@actions/core": "^1.11.1",
-    "@actions/github": "^6.0.1",
+    "@actions/core": "^3.0.1",
+    "@actions/github": "^9.1.1",
     "@octokit/rest": "20.1.2",
-    "js-yaml": "^4.1.0"
+    "js-yaml": "^4.1.1"
   },
   "devDependencies": {
     "@types/istanbul-lib-coverage": "^2.0.6",
-    "@types/jest": "^29.5.14",
+    "@types/jest": "^30.0.0",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.14.1",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
-    "@vitest/coverage-v8": "^3.1.2",
+    "@typescript-eslint/eslint-plugin": "^8.61.1",
+    "@typescript-eslint/parser": "^8.61.1",
+    "@vitest/coverage-v8": "^3.2.6",
     "eslint": "^8.57.1",
     "ts-node": "^10.9.2",
     "tsup": "^8.5.0",
     "typescript": "^5.3.3",
-    "vitest": "^3.1.2"
+    "vitest": "^3.2.6"
   },
   "engines": {
     "node": ">=20.0.0"
+  },
+  "packageManager": "npm@10.9.2",
+  "overrides": {
+    "esbuild": "0.28.1"
   },
   "keywords": [
     "github",
