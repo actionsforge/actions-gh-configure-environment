@@ -102,7 +102,7 @@ export async function run(): Promise<void> {
       try {
         currentConfig = await githubService.getEnvironmentConfig(envName);
         logDebug(inputs.debug, `Current config for ${envName}: ${JSON.stringify(currentConfig)}`);
-      } catch (err) {
+      } catch {
         logDebug(inputs.debug, `Environment ${envName} does not exist yet`);
       }
 
