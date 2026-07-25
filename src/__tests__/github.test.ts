@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GitHubService } from '../github';
 import { Octokit } from '@octokit/rest';
@@ -15,16 +16,16 @@ vi.mock('@actions/core', () => ({
 
 describe('GitHubService', () => {
   let mockOctokit: {
-    users: { getByUsername: ReturnType<typeof vi.fn> };
+    users: { getByUsername: Mock<(...args: any[]) => any> };
     teams: {
-      getByName: ReturnType<typeof vi.fn>;
-      listReposInOrg: ReturnType<typeof vi.fn>;
+      getByName: Mock<(...args: any[]) => any>;
+      listReposInOrg: Mock<(...args: any[]) => any>;
     };
     repos: {
-      getEnvironment: ReturnType<typeof vi.fn>;
-      deleteAnEnvironment: ReturnType<typeof vi.fn>;
-      createOrUpdateEnvironment: ReturnType<typeof vi.fn>;
-      getAllEnvironments: ReturnType<typeof vi.fn>;
+      getEnvironment: Mock<(...args: any[]) => any>;
+      deleteAnEnvironment: Mock<(...args: any[]) => any>;
+      createOrUpdateEnvironment: Mock<(...args: any[]) => any>;
+      getAllEnvironments: Mock<(...args: any[]) => any>;
     };
   };
   let service: GitHubService;
@@ -48,7 +49,9 @@ describe('GitHubService', () => {
         getAllEnvironments: vi.fn()
       }
     };
-    (Octokit as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => mockOctokit);
+    (Octokit as unknown as Mock<(...args: any[]) => any>).mockImplementation(function () {
+      return mockOctokit;
+    });
     service = new GitHubService(mockToken, mockRepo);
     (service as unknown as { octokit: typeof mockOctokit }).octokit = mockOctokit;
   });
