@@ -8,43 +8,13 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: dummy-token
-      GITHUB_REPOSITORY: example-org/example-repo
-
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 #v7.0.0
-
-      - name: Set up Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: 20
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Type check
-        run: npm run build
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Security audit
-        run: npm audit || true
-
-      - name: Run unit tests
-        run: npm test
-
-      - name: Test coverage
-        run: npm test -- --coverage
-
-      - name: Verify build
-        run: |
-          npm run build
-          test -f dist/index.js
-          test -f dist/configure-environment.sh
-
-      - name: Check dependencies
-        run: npm outdated || true
+    permissions:
+      contents: read
+    uses: actionsforge/actions/.github/workflows/node-ci-workflow.yml@main
+    with:
+      node-version: '20'
+      typecheck: true
+      coverage: true
+      build: true
+      # Soft-fail audit lived in the old workflow (npm audit || true)
+      audit: false
