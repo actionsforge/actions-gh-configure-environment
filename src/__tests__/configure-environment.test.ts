@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as core from '@actions/core';
 import * as github from '../github';
@@ -12,9 +13,9 @@ vi.mock('../utils');
 describe('configure-environment', () => {
   let mockOctokit: {
     repos: {
-      getEnvironment: ReturnType<typeof vi.fn>;
-      deleteAnEnvironment: ReturnType<typeof vi.fn>;
-      createOrUpdateEnvironment: ReturnType<typeof vi.fn>;
+      getEnvironment: Mock<(...args: any[]) => any>;
+      deleteAnEnvironment: Mock<(...args: any[]) => any>;
+      createOrUpdateEnvironment: Mock<(...args: any[]) => any>;
     };
   };
 
@@ -27,7 +28,8 @@ describe('configure-environment', () => {
         createOrUpdateEnvironment: vi.fn()
       }
     };
-    (github.GitHubService as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => ({
+    (github.GitHubService as unknown as Mock<(...args: any[]) => any>).mockImplementation(function () {
+      return {
       getEnvironmentConfig: (envName: string) => mockOctokit.repos.getEnvironment({
         owner: 'owner',
         repo: 'repo',
@@ -68,8 +70,9 @@ describe('configure-environment', () => {
         status: 'success',
         message: `Successfully created environment '${envName}'`
       }))
-    }));
-    (utils.processReviewers as unknown as ReturnType<typeof vi.fn>).mockResolvedValue([
+      };
+    });
+    (utils.processReviewers as unknown as Mock<(...args: any[]) => any>).mockResolvedValue([
       { type: 'User', id: 123, login: 'testuser' },
       { type: 'Team', id: 456, slug: 'testteam' }
     ]);

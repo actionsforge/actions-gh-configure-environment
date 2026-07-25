@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GitHubService } from '../github';
 import { processReviewers } from '../utils';
@@ -32,7 +33,7 @@ describe('Utils', () => {
 
     describe('valid inputs', () => {
       it('should process user reviewers', async () => {
-        (mockGithub.getUser as ReturnType<typeof vi.fn>).mockResolvedValue({ type: 'User', id: 123, login: 'testuser' });
+        (mockGithub.getUser as Mock<(...args: any[]) => any>).mockResolvedValue({ type: 'User', id: 123, login: 'testuser' });
 
         const result = await processReviewers('user:testuser', mockGithub);
 
@@ -41,7 +42,7 @@ describe('Utils', () => {
       });
 
       it('should process team reviewers', async () => {
-        (mockGithub.getTeam as ReturnType<typeof vi.fn>).mockResolvedValue({ type: 'Team', id: 456, slug: 'testteam' });
+        (mockGithub.getTeam as Mock<(...args: any[]) => any>).mockResolvedValue({ type: 'Team', id: 456, slug: 'testteam' });
 
         const result = await processReviewers('team:testteam', mockGithub);
 
@@ -50,8 +51,8 @@ describe('Utils', () => {
       });
 
       it('should process multiple reviewers', async () => {
-        (mockGithub.getUser as ReturnType<typeof vi.fn>).mockResolvedValue({ type: 'User', id: 123, login: 'testuser' });
-        (mockGithub.getTeam as ReturnType<typeof vi.fn>).mockResolvedValue({ type: 'Team', id: 456, slug: 'testteam' });
+        (mockGithub.getUser as Mock<(...args: any[]) => any>).mockResolvedValue({ type: 'User', id: 123, login: 'testuser' });
+        (mockGithub.getTeam as Mock<(...args: any[]) => any>).mockResolvedValue({ type: 'Team', id: 456, slug: 'testteam' });
 
         const result = await processReviewers('user:testuser,team:testteam', mockGithub);
 

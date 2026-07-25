@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as core from '@actions/core';
 import * as fs from 'fs';
@@ -19,13 +20,13 @@ vi.mock('js-yaml');
 
 describe('Action', () => {
   let mockGitHubService: {
-    getAllEnvironments: ReturnType<typeof vi.fn>;
-    getEnvironmentConfig: ReturnType<typeof vi.fn>;
-    updateEnvironment: ReturnType<typeof vi.fn>;
-    deleteAnEnvironment: ReturnType<typeof vi.fn>;
-    getUser: ReturnType<typeof vi.fn>;
-    getTeam: ReturnType<typeof vi.fn>;
-    resolveReviewers: ReturnType<typeof vi.fn>;
+    getAllEnvironments: Mock<(...args: any[]) => any>;
+    getEnvironmentConfig: Mock<(...args: any[]) => any>;
+    updateEnvironment: Mock<(...args: any[]) => any>;
+    deleteAnEnvironment: Mock<(...args: any[]) => any>;
+    getUser: Mock<(...args: any[]) => any>;
+    getTeam: Mock<(...args: any[]) => any>;
+    resolveReviewers: Mock<(...args: any[]) => any>;
   };
 
   beforeEach(() => {
@@ -33,7 +34,7 @@ describe('Action', () => {
     process.env.GITHUB_REPOSITORY = 'owner/repo';
     process.env.GITHUB_TOKEN = 'test-token';
 
-    (core.getInput as ReturnType<typeof vi.fn>).mockImplementation((name: string) => {
+    (core.getInput as Mock<(...args: any[]) => any>).mockImplementation((name: string) => {
       switch (name) {
         case 'token':
           return 'test-token';
@@ -74,7 +75,9 @@ describe('Action', () => {
         return resolvedReviewers;
       })
     };
-    (GitHubService as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => mockGitHubService);
+    (GitHubService as unknown as Mock<(...args: any[]) => any>).mockImplementation(function () {
+      return mockGitHubService;
+    });
 
     const mockConfig = {
       environments: {
@@ -92,8 +95,8 @@ describe('Action', () => {
         }
       }
     };
-    (fs.readFileSync as ReturnType<typeof vi.fn>).mockReturnValue('mock yaml content');
-    (yaml.load as ReturnType<typeof vi.fn>).mockReturnValue(mockConfig);
+    (fs.readFileSync as Mock<(...args: any[]) => any>).mockReturnValue('mock yaml content');
+    (yaml.load as Mock<(...args: any[]) => any>).mockReturnValue(mockConfig);
   });
 
   afterEach(() => {
@@ -131,8 +134,8 @@ describe('Action', () => {
 
     it('should handle missing environments in config', async () => {
       const mockConfig = { environments: {} };
-      (fs.readFileSync as ReturnType<typeof vi.fn>).mockReturnValue('environments: {}');
-      (yaml.load as ReturnType<typeof vi.fn>).mockReturnValue(mockConfig);
+      (fs.readFileSync as Mock<(...args: any[]) => any>).mockReturnValue('environments: {}');
+      (yaml.load as Mock<(...args: any[]) => any>).mockReturnValue(mockConfig);
       mockGitHubService.getAllEnvironments.mockResolvedValue(['env1', 'env2']);
 
       await run();
@@ -143,7 +146,7 @@ describe('Action', () => {
     });
 
     it('should handle invalid YAML config', async () => {
-      (yaml.load as ReturnType<typeof vi.fn>).mockImplementation(() => {
+      (yaml.load as Mock<(...args: any[]) => any>).mockImplementation(() => {
         throw new Error('Invalid YAML');
       });
       await run();
@@ -157,7 +160,7 @@ describe('Action', () => {
     });
 
     it('should skip environment update in dry-run mode', async () => {
-      (core.getInput as ReturnType<typeof vi.fn>).mockImplementation((name: string) => {
+      (core.getInput as Mock<(...args: any[]) => any>).mockImplementation((name: string) => {
         if (name === 'dry-run') return 'true';
         if (name === 'token') return 'test-token';
         if (name === 'config-path') return '.github/environments.yaml';
@@ -182,7 +185,7 @@ describe('Action', () => {
     });
 
     it('should handle empty reviewers list', async () => {
-      (yaml.load as ReturnType<typeof vi.fn>).mockReturnValue({
+      (yaml.load as Mock<(...args: any[]) => any>).mockReturnValue({
         environments: {
           'test-env': {
             wait_timer: 30,
@@ -201,7 +204,7 @@ describe('Action', () => {
     });
 
     it('should handle missing reviewers in config', async () => {
-      (yaml.load as ReturnType<typeof vi.fn>).mockReturnValue({
+      (yaml.load as Mock<(...args: any[]) => any>).mockReturnValue({
         environments: {
           'test-env': {
             wait_timer: 30,
